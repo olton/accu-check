@@ -1,3 +1,3 @@
-# accu_check
+# accu-check
 
-A new Flutter project.
+Accu-Check history tracking application for Android.
