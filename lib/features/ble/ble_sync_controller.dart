@@ -4,15 +4,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../storage/glucose_repository.dart';
 import 'ble_sync_service.dart';
 
-final bleScanProvider = StreamProvider<List<DiscoveredDevice>>((ref) {
+final bleScanProvider = StreamProvider<List<BleSyncDevice>>((ref) async* {
   final service = ref.watch(bleSyncServiceProvider);
+
+  final savedDevices = await service.getSavedDevices();
+  if (savedDevices.isNotEmpty) {
+    yield savedDevices
+        .map(
+          (device) =>
+              BleSyncDevice(id: device.id, name: device.name, isSaved: true),
+        )
+        .toList(growable: false);
+    return;
+  }
+
   final seen = <String, DiscoveredDevice>{};
 
-  return service.scanMeters().map((device) {
+  yield* service.scanMeters().map((device) {
     seen[device.id] = device;
     final list = seen.values.toList(growable: false)
       ..sort((a, b) => b.rssi.compareTo(a.rssi));
-    return list;
+    return list
+        .map(
+          (item) => BleSyncDevice(
+            id: item.id,
+            name: item.name,
+            rssi: item.rssi,
+            isSaved: false,
+          ),
+        )
+        .toList(growable: false);
   });
 });
 
@@ -25,14 +46,18 @@ class BleSyncController extends Notifier<BleSyncState> {
     return const BleSyncState();
   }
 
-  Future<void> syncDevice(String deviceId) async {
+  Future<void> syncDevice(BleSyncDevice device) async {
     state = state.copyWith(isSyncing: true, errorMessage: null);
 
     try {
       final service = ref.read(bleSyncServiceProvider);
       final repository = ref.read(glucoseRepositoryProvider);
-      final readings = await service.syncFromDevice(deviceId: deviceId);
+      final readings = await service.syncFromDevice(deviceId: device.id);
       await repository.upsertMany(readings);
+      await service.savePairedDevice(
+        deviceId: device.id,
+        deviceName: device.name.isEmpty ? device.id : device.name,
+      );
 
       state = state.copyWith(
         isSyncing: false,
@@ -51,6 +76,20 @@ class BleSyncController extends Notifier<BleSyncState> {
   void clearError() {
     state = state.copyWith(clearError: true);
   }
+}
+
+class BleSyncDevice {
+  const BleSyncDevice({
+    required this.id,
+    required this.name,
+    required this.isSaved,
+    this.rssi,
+  });
+
+  final String id;
+  final String name;
+  final bool isSaved;
+  final int? rssi;
 }
 
 class BleSyncState {

@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../glucose/glucose_reading.dart';
@@ -12,14 +14,20 @@ final bleSyncServiceProvider = Provider<BleSyncService>((ref) {
   return BleSyncService(
     ble: FlutterReactiveBle(),
     parser: const GlucoseBleParser(),
+    secureStorage: const FlutterSecureStorage(),
   );
 });
 
 class BleSyncService {
-  BleSyncService({required this._ble, required this._parser});
+  BleSyncService({
+    required this._ble,
+    required this._parser,
+    required this._secureStorage,
+  });
 
   final FlutterReactiveBle _ble;
   final GlucoseBleParser _parser;
+  final FlutterSecureStorage _secureStorage;
 
   static final Uuid _glucoseServiceUuid = Uuid.parse(
     '00001808-0000-1000-8000-00805f9b34fb',
@@ -30,6 +38,51 @@ class BleSyncService {
   static final Uuid _racpCharUuid = Uuid.parse(
     '00002A52-0000-1000-8000-00805f9b34fb',
   );
+  static const _pairedDevicesKey = 'accu_check.ble.paired_devices.v1';
+
+  Future<List<SavedBleDevice>> getSavedDevices() async {
+    final raw = await _secureStorage.read(key: _pairedDevicesKey);
+    if (raw == null || raw.isEmpty) {
+      return const [];
+    }
+
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return const [];
+    }
+
+    final devices = decoded
+        .whereType<Map<String, dynamic>>()
+        .map(SavedBleDevice.fromJson)
+        .toList(growable: false);
+
+    final sorted = [...devices]
+      ..sort((a, b) => b.lastConnectedAt.compareTo(a.lastConnectedAt));
+    return sorted;
+  }
+
+  Future<void> savePairedDevice({
+    required String deviceId,
+    required String deviceName,
+  }) async {
+    final normalizedId = deviceId.trim();
+    if (normalizedId.isEmpty) {
+      return;
+    }
+
+    final existing = await getSavedDevices();
+    final updated = [
+      SavedBleDevice(
+        id: normalizedId,
+        name: deviceName.trim(),
+        lastConnectedAt: DateTime.now(),
+      ),
+      ...existing.where((device) => device.id != normalizedId),
+    ];
+
+    final encoded = jsonEncode(updated.map((item) => item.toJson()).toList());
+    await _secureStorage.write(key: _pairedDevicesKey, value: encoded);
+  }
 
   Stream<DiscoveredDevice> scanMeters() async* {
     final granted = await ensurePermissions();
@@ -47,9 +100,11 @@ class BleSyncService {
           scanMode: ScanMode.lowLatency,
           requireLocationServicesEnabled: false,
         )
-        .where(
-          (device) => device.name.trim().toLowerCase().startsWith('meter+'),
-        );
+        .where(_isPrimaryMeter);
+  }
+
+  bool _isPrimaryMeter(DiscoveredDevice device) {
+    return device.name.trim().toLowerCase().startsWith('meter+');
   }
 
   Future<List<GlucoseReading>> syncFromDevice({
@@ -219,4 +274,37 @@ class BleException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class SavedBleDevice {
+  const SavedBleDevice({
+    required this.id,
+    required this.name,
+    required this.lastConnectedAt,
+  });
+
+  final String id;
+  final String name;
+  final DateTime lastConnectedAt;
+
+  factory SavedBleDevice.fromJson(Map<String, dynamic> json) {
+    final lastConnectedRaw = json['lastConnectedAtEpochMs'];
+    final lastConnectedAt = lastConnectedRaw is int
+        ? DateTime.fromMillisecondsSinceEpoch(lastConnectedRaw)
+        : DateTime.fromMillisecondsSinceEpoch(0);
+
+    return SavedBleDevice(
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
+      lastConnectedAt: lastConnectedAt,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'lastConnectedAtEpochMs': lastConnectedAt.millisecondsSinceEpoch,
+    };
+  }
 }

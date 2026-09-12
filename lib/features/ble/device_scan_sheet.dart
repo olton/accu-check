@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'ble_sync_controller.dart';
@@ -56,7 +55,7 @@ class DeviceScanSheet extends ConsumerWidget {
                         onTap: () async {
                           await ref
                               .read(bleSyncControllerProvider.notifier)
-                              .syncDevice(device.id);
+                              .syncDevice(device);
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }
@@ -88,22 +87,25 @@ class _DeviceTile extends StatelessWidget {
     required this.busy,
   });
 
-  final DiscoveredDevice device;
+  final BleSyncDevice device;
   final VoidCallback onTap;
   final bool busy;
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = device.name.isEmpty
-        ? device.id
-        : '${device.name} • ${device.id}';
+    final title = device.name.isEmpty ? 'Unknown device' : device.name;
 
     return ListTile(
       enabled: !busy,
       leading: const Icon(Icons.monitor_heart_outlined),
-      title: Text(device.name.isEmpty ? 'Unknown device' : device.name),
-      subtitle: Text(subtitle),
-      trailing: Text('${device.rssi} dBm'),
+      title: Text(title),
+      subtitle: Text(device.id),
+      trailing: device.isSaved
+          ? const Icon(Icons.bookmark, color: Color(0xFF0A6B63))
+          : Text(
+              device.rssi == null ? '' : '${device.rssi} dBm',
+              style: const TextStyle(color: Color(0xFF516664)),
+            ),
       onTap: onTap,
     );
   }
