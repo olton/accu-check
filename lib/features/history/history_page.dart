@@ -388,23 +388,42 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            reservedSize: 44,
+            reservedSize: 74,
+            interval: 1,
             getTitlesWidget: (value, meta) {
-              final index = value.toInt();
+              const maxVisibleLabels = 14;
+              final labelStep = points.length <= maxVisibleLabels
+                  ? 1
+                  : (points.length + maxVisibleLabels - 1) ~/ maxVisibleLabels;
+
+              final index = value.round();
+              final isExactPoint = (value - index).abs() < 0.001;
+              if (!isExactPoint) {
+                return const SizedBox.shrink();
+              }
+
               if (index < 0 || index >= points.length) {
                 return const SizedBox.shrink();
               }
 
+              final isBoundary = index == 0 || index == points.length - 1;
+              final shouldShow = isBoundary || index % labelStep == 0;
+              if (!shouldShow) {
+                return const SizedBox.shrink();
+              }
+
               final measuredAt = points[index].measuredAt;
-              return Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '${DateFormat('dd.MM').format(measuredAt)}\n${DateFormat('HH:mm').format(measuredAt)}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    height: 1.1,
-                    color: Color(0xFF5F7371),
+              return SideTitleWidget(
+                meta: meta,
+                space: 8,
+                child: RotatedBox(
+                  quarterTurns: 3,
+                  child: Text(
+                    '${DateFormat('dd.MM').format(measuredAt)} ${DateFormat('HH:mm').format(measuredAt)}',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF5F7371),
+                    ),
                   ),
                 ),
               );
