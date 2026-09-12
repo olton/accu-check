@@ -39,23 +39,17 @@ class BleSyncService {
       );
     }
 
+    await _ensureBleReady();
+
     yield* _ble
         .scanForDevices(
-          withServices: [_glucoseServiceUuid],
+          withServices: const [],
           scanMode: ScanMode.lowLatency,
           requireLocationServicesEnabled: false,
         )
-        .where((device) {
-          final name = device.name.toLowerCase();
-          final id = device.id.toLowerCase();
-          final hasGlucoseService = device.serviceUuids.contains(
-            _glucoseServiceUuid,
-          );
-          return hasGlucoseService ||
-              name.contains('accu') ||
-              name.contains('chek') ||
-              id.contains('accu');
-        });
+        .where(
+          (device) => device.name.trim().toLowerCase().startsWith('meter+'),
+        );
   }
 
   Future<List<GlucoseReading>> syncFromDevice({
@@ -67,6 +61,8 @@ class BleSyncService {
         'Потрібно надати Bluetooth permissions для синхронізації.',
       );
     }
+
+    await _ensureBleReady();
 
     final completer = Completer<List<GlucoseReading>>();
     final readings = <GlucoseReading>[];
@@ -178,6 +174,41 @@ class BleSyncService {
     // Some devices/OS builds still expect runtime location permission for BLE scan.
     await Permission.locationWhenInUse.request();
     return true;
+  }
+
+  Future<void> _ensureBleReady() async {
+    final current = _ble.status;
+    if (current == BleStatus.ready) {
+      return;
+    }
+
+    final status = await _ble.statusStream.firstWhere(
+      (value) => value != BleStatus.unknown,
+      orElse: () => BleStatus.unknown,
+    );
+
+    if (status == BleStatus.ready) {
+      return;
+    }
+
+    throw BleException(_statusMessage(status));
+  }
+
+  String _statusMessage(BleStatus status) {
+    switch (status) {
+      case BleStatus.unauthorized:
+        return 'Додатку не надано доступ до Bluetooth. Перевірте дозволи Nearby devices.';
+      case BleStatus.poweredOff:
+        return 'Bluetooth вимкнено. Увімкніть Bluetooth і спробуйте ще раз.';
+      case BleStatus.locationServicesDisabled:
+        return 'На цьому пристрої для BLE-сканування потрібно увімкнути геолокацію (Location Services).';
+      case BleStatus.unsupported:
+        return 'Цей пристрій не підтримує BLE.';
+      case BleStatus.unknown:
+        return 'Не вдалося визначити стан Bluetooth. Спробуйте ще раз.';
+      case BleStatus.ready:
+        return '';
+    }
   }
 }
 
