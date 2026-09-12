@@ -1,8 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 
+import '../auth/login_page.dart';
 import '../auth/passkey_auth_service.dart';
 import '../ble/ble_sync_controller.dart';
 import '../ble/device_scan_sheet.dart';
@@ -32,6 +34,77 @@ class HistoryPage extends ConsumerStatefulWidget {
 class _HistoryPageState extends ConsumerState<HistoryPage> {
   HistoryPeriod _selectedPeriod = HistoryPeriod.last7Days;
   DateTimeRange? _customRange;
+  static const _intervalModeKey = 'accu_check.history.interval_mode.v1';
+  static const _intervalPeriodKey = 'accu_check.history.interval_period.v1';
+  static const _intervalCustomStartKey =
+      'accu_check.history.interval_custom_start.v1';
+  static const _intervalCustomEndKey =
+      'accu_check.history.interval_custom_end.v1';
+  final _storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreIntervalPreference();
+  }
+
+  Future<void> _restoreIntervalPreference() async {
+    final mode = await _storage.read(key: _intervalModeKey);
+
+    if (!mounted || mode == null) {
+      return;
+    }
+
+    if (mode == 'custom') {
+      final startRaw = await _storage.read(key: _intervalCustomStartKey);
+      final endRaw = await _storage.read(key: _intervalCustomEndKey);
+      final startMs = int.tryParse(startRaw ?? '');
+      final endMs = int.tryParse(endRaw ?? '');
+
+      if (startMs != null && endMs != null && startMs <= endMs) {
+        setState(() {
+          _customRange = DateTimeRange(
+            start: DateTime.fromMillisecondsSinceEpoch(startMs),
+            end: DateTime.fromMillisecondsSinceEpoch(endMs),
+          );
+        });
+      }
+      return;
+    }
+
+    final periodName = await _storage.read(key: _intervalPeriodKey);
+    final savedPeriod = HistoryPeriod.values.where((period) {
+      return period.name == periodName;
+    }).firstOrNull;
+
+    if (savedPeriod == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedPeriod = savedPeriod;
+      _customRange = null;
+    });
+  }
+
+  Future<void> _savePresetInterval(HistoryPeriod period) async {
+    await _storage.write(key: _intervalModeKey, value: 'preset');
+    await _storage.write(key: _intervalPeriodKey, value: period.name);
+    await _storage.delete(key: _intervalCustomStartKey);
+    await _storage.delete(key: _intervalCustomEndKey);
+  }
+
+  Future<void> _saveCustomInterval(DateTimeRange range) async {
+    await _storage.write(key: _intervalModeKey, value: 'custom');
+    await _storage.write(
+      key: _intervalCustomStartKey,
+      value: range.start.millisecondsSinceEpoch.toString(),
+    );
+    await _storage.write(
+      key: _intervalCustomEndKey,
+      value: range.end.millisecondsSinceEpoch.toString(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +131,16 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     );
                   },
             icon: const Icon(Icons.bluetooth_searching),
+          ),
+          IconButton(
+            tooltip: 'Logout',
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+                (route) => false,
+              );
+            },
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
@@ -116,10 +199,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     ],
                     selected: <HistoryPeriod>{_selectedPeriod},
                     onSelectionChanged: (selection) {
+                      final selected = selection.first;
                       setState(() {
-                        _selectedPeriod = selection.first;
+                        _selectedPeriod = selected;
                         _customRange = null;
                       });
+                      _savePresetInterval(selected);
                     },
                   ),
                 ),
@@ -141,11 +226,15 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             const SizedBox(height: 12),
             Expanded(child: _buildContent(readingsAsync)),
             const SizedBox(height: 12),
-            Text(
-              syncState.lastSyncedCount > 0
-                  ? 'Остання синхронізація: +${syncState.lastSyncedCount} вимірювань'
-                  : 'Останнє оновлення: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
-              style: const TextStyle(color: Color(0xFF516664), fontSize: 12),
+            SizedBox(
+              width: double.infinity,
+              child: Text(
+                syncState.lastSyncedCount > 0
+                    ? 'Остання синхронізація: +${syncState.lastSyncedCount} вимірювань'
+                    : 'Останнє оновлення: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF000000), fontSize: 12),
+              ),
             ),
           ],
         ),
@@ -176,7 +265,10 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+            ),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x220B3F3A),
@@ -249,6 +341,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         end: _endOfDay(picked.end),
       );
     });
+
+    await _saveCustomInterval(_customRange!);
   }
 
   String _currentPeriodLabel() {

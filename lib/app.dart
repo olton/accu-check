@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'features/auth/passkey_auth_service.dart';
+import 'features/history/history_page.dart';
 import 'features/auth/login_page.dart';
 
 final _secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
@@ -12,6 +14,28 @@ final _onboardingDoneProvider = FutureProvider<bool>((ref) async {
   final storage = ref.watch(_secureStorageProvider);
   final value = await storage.read(key: 'accu_check.onboarding_done.v1');
   return value == 'true';
+});
+
+final _startupAuthProvider = FutureProvider<_StartupAuthState>((ref) async {
+  final service = ref.watch(passkeyAuthServiceProvider);
+  final hasLocalAccount = await service.hasLocalAccount();
+  if (!hasLocalAccount) {
+    return const _StartupAuthState(showLogin: true);
+  }
+
+  try {
+    final session = await service.signInWithSavedAccount();
+    return _StartupAuthState(session: session);
+  } on PasskeyAuthCancelledException {
+    return const _StartupAuthState(showLogin: true);
+  } on PasskeySetupException catch (error) {
+    return _StartupAuthState(errorMessage: error.message);
+  } catch (_) {
+    return const _StartupAuthState(
+      errorMessage:
+          'Не вдалося виконати автоматичну авторизацію. Спробуйте ще раз.',
+    );
+  }
 });
 
 class AccuCheckApp extends ConsumerWidget {
@@ -43,10 +67,70 @@ class _BootstrapPage extends ConsumerWidget {
     final onboarding = ref.watch(_onboardingDoneProvider);
 
     return onboarding.when(
-      data: (done) => done ? const LoginPage() : const WelcomePage(),
+      data: (done) => done ? const _StartupAuthPage() : const WelcomePage(),
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (_, _) => const WelcomePage(),
+    );
+  }
+}
+
+class _StartupAuthState {
+  const _StartupAuthState({
+    this.showLogin = false,
+    this.session,
+    this.errorMessage,
+  });
+
+  final bool showLogin;
+  final PasskeySession? session;
+  final String? errorMessage;
+}
+
+class _StartupAuthPage extends ConsumerWidget {
+  const _StartupAuthPage();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final startupAuth = ref.watch(_startupAuthProvider);
+
+    return startupAuth.when(
+      data: (state) {
+        if (state.showLogin) {
+          return const LoginPage();
+        }
+
+        if (state.session != null) {
+          return HistoryPage(session: state.session!);
+        }
+
+        return Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    state.errorMessage ??
+                        'Не вдалося виконати автоматичну авторизацію.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Color(0xFF7A3A1D)),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => ref.invalidate(_startupAuthProvider),
+                    child: const Text('Спробувати ще раз'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, _) => const LoginPage(),
     );
   }
 }

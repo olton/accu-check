@@ -29,6 +29,30 @@ class PasskeyAuthService {
     await secureStorage.delete(key: _accountKey);
   }
 
+  Future<PasskeySession> signInWithSavedAccount() async {
+    await _ensureLocalAuthSupported();
+
+    final account = await _readAccount();
+    if (account == null) {
+      throw const PasskeySetupException(
+        'Локальний passkey ще не створений. Спочатку виконайте signup.',
+      );
+    }
+
+    final approved = await _authenticateOrThrow(
+      localizedReason: 'Підтвердіть вхід у застосунок',
+    );
+
+    if (!approved) {
+      throw const PasskeyAuthCancelledException();
+    }
+
+    return PasskeySession(
+      userId: account.userId,
+      displayName: account.displayName,
+    );
+  }
+
   Future<PasskeySession> signUp({
     required String username,
     required String displayName,
@@ -87,7 +111,7 @@ class PasskeyAuthService {
     );
 
     if (!approved) {
-      throw const PasskeySetupException('Вхід скасовано користувачем.');
+      throw const PasskeyAuthCancelledException();
     }
 
     return PasskeySession(
@@ -120,6 +144,10 @@ class PasskeyAuthService {
         ),
       );
     } on PlatformException catch (error) {
+      final code = error.code.toLowerCase();
+      if (code.contains('canceled') || code.contains('cancelled')) {
+        throw const PasskeyAuthCancelledException();
+      }
       throw PasskeySetupException(_mapLocalAuthError(error));
     }
   }
@@ -205,4 +233,9 @@ class PasskeySetupException implements Exception {
   String toString() {
     return message;
   }
+}
+
+class PasskeyAuthCancelledException extends PasskeySetupException {
+  const PasskeyAuthCancelledException()
+    : super('Авторизацію скасовано користувачем.');
 }
