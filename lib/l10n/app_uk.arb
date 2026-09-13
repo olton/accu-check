@@ -1,0 +1,14 @@
+{
+  "@@locale": "uk",
+  "appTitle": "Accu-Check Viewer",
+  "welcomeTitle": "Accu-Check Instant перегляд історії",
+  "welcomeDescription": "Синхронізуйте вимірювання через Bluetooth та відстежуйте динаміку глюкози на зрозумілих графіках.",
+  "completeSetup": "Завершити стартове налаштування",
+  "welcomeNote": "Перший запуск: реєстрація та вхід працюють локально на девайсі через біометрію або PIN/пароль.",
+  "checklistBluetooth": "Увімкніть Bluetooth на смартфоні",
+  "checklistAccount": "Додайте локальний акаунт через signup",
+  "checklistSync": "Після входу синхронізуйте вимірювання з глюкометра",
+  "automaticAuthFailed": "Не вдалося виконати автоматичну авторизацію. Спробуйте ще раз.",
+  "automaticAuthFailedShort": "Не вдалося виконати автоматичну авторизацію.",
+  "tryAgain": "Спробувати ще раз"
+}

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'features/auth/passkey_auth_service.dart';
 import 'features/history/history_page.dart';
 import 'features/auth/login_page.dart';
+
+import 'l10n/app_localizations.dart';
 
 final _secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
   return const FlutterSecureStorage();
@@ -31,10 +34,7 @@ final _startupAuthProvider = FutureProvider<_StartupAuthState>((ref) async {
   } on PasskeySetupException catch (error) {
     return _StartupAuthState(errorMessage: error.message);
   } catch (_) {
-    return const _StartupAuthState(
-      errorMessage:
-          'Не вдалося виконати автоматичну авторизацію. Спробуйте ще раз.',
-    );
+    return const _StartupAuthState();
   }
 });
 
@@ -43,9 +43,18 @@ class AccuCheckApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
     return MaterialApp(
-      title: 'Accu-Check Sync',
+      title: l10n.appTitle,
       debugShowCheckedModeBanner: false,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF0A6B63),
@@ -92,6 +101,7 @@ class _StartupAuthPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final startupAuth = ref.watch(_startupAuthProvider);
 
     return startupAuth.when(
@@ -112,15 +122,14 @@ class _StartupAuthPage extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    state.errorMessage ??
-                        'Не вдалося виконати автоматичну авторизацію.',
+                    state.errorMessage ?? l10n.automaticAuthFailedShort,
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Color(0xFF7A3A1D)),
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () => ref.invalidate(_startupAuthProvider),
-                    child: const Text('Спробувати ще раз'),
+                    child: Text(l10n.tryAgain),
                   ),
                 ],
               ),
@@ -140,6 +149,8 @@ class WelcomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -156,8 +167,8 @@ class WelcomePage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Spacer(),
-                const Text(
-                  'Accu-Check Instant',
+                Text(
+                  l10n.welcomeTitle,
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.w700,
@@ -166,8 +177,8 @@ class WelcomePage extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Синхронізуйте вимірювання через Bluetooth та відстежуйте динаміку глюкози на зрозумілих графіках.',
+                Text(
+                  l10n.welcomeDescription,
                   style: TextStyle(
                     fontSize: 16,
                     height: 1.5,
@@ -205,16 +216,22 @@ class WelcomePage extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    child: const Text('Завершити стартове налаштування'),
+                    child: Text(l10n.completeSetup),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Перший запуск: реєстрація та вхід працюють локально на девайсі через біометрію або PIN/пароль.',
+                Text(
+                  l10n.welcomeNote,
                   style: TextStyle(fontSize: 12, color: Color(0xFF5E7A78)),
                 ),
                 const SizedBox(height: 12),
-                const _OnboardingChecklist(),
+                _OnboardingChecklist(
+                  items: [
+                    l10n.checklistBluetooth,
+                    l10n.checklistAccount,
+                    l10n.checklistSync,
+                  ],
+                ),
                 const Spacer(),
               ],
             ),
@@ -226,19 +243,17 @@ class WelcomePage extends ConsumerWidget {
 }
 
 class _OnboardingChecklist extends StatelessWidget {
-  const _OnboardingChecklist();
+  const _OnboardingChecklist({required this.items});
+
+  final List<String> items;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _ChecklistItem(text: 'Увімкніть Bluetooth на смартфоні'),
-        _ChecklistItem(text: 'Додайте локальний акаунт через signup'),
-        _ChecklistItem(
-          text: 'Після входу синхронізуйте вимірювання з глюкометра',
-        ),
-      ],
+      children: items
+          .map((item) => _ChecklistItem(text: item))
+          .toList(growable: false),
     );
   }
 }

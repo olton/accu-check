@@ -1,0 +1,14 @@
+{
+  "@@locale": "en",
+  "appTitle": "Accu-Check Viewer",
+  "welcomeTitle": "Accu-Check Instant history viewer",
+  "welcomeDescription": "Sync measurements over Bluetooth and track glucose trends with clear charts.",
+  "completeSetup": "Complete initial setup",
+  "welcomeNote": "On first launch, registration and sign-in work locally on the device using biometrics or a PIN/password.",
+  "checklistBluetooth": "Enable Bluetooth on your smartphone",
+  "checklistAccount": "Add a local account through signup",
+  "checklistSync": "After signing in, sync measurements from the glucose meter",
+  "automaticAuthFailed": "Automatic authorization failed. Please try again.",
+  "automaticAuthFailedShort": "Automatic authorization failed.",
+  "tryAgain": "Try again"
+}

@@ -1,5 +1,5 @@
-name: accu_check
-description: 'A new Flutter project.'
+name: accu_viewer
+description: 'Accu-Check history viewer.'
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   flutter_riverpod: ^3.4.3
   flutter_reactive_ble: ^5.3.1
@@ -36,3 +38,4 @@ flutter_icons:
 
 flutter:
   uses-material-design: true
+  generate: true
