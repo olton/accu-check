@@ -98,13 +98,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Accu-Check Sync'**
+  /// **'Accu-Check Viewer'**
   String get appTitle;
 
   /// No description provided for @welcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Accu-Check Instant'**
+  /// **'Accu-Check Instant history viewer'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeDescription.
@@ -143,6 +143,12 @@ abstract class AppLocalizations {
   /// **'After signing in, sync measurements from the glucose meter'**
   String get checklistSync;
 
+  /// No description provided for @measurements.
+  ///
+  /// In en, this message translates to:
+  /// **'measurements'**
+  String get measurements;
+
   /// No description provided for @automaticAuthFailed.
   ///
   /// In en, this message translates to:
@@ -160,6 +166,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get tryAgain;
+
+  /// No description provided for @last24hours.
+  ///
+  /// In en, this message translates to:
+  /// **'24H'**
+  String get last24hours;
+
+  /// No description provided for @last7days.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get last7days;
+
+  /// No description provided for @last30days.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get last30days;
+
+  /// No description provided for @trend.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend for'**
+  String get trend;
+
+  /// No description provided for @glucose.
+  ///
+  /// In en, this message translates to:
+  /// **'Glucose'**
+  String get glucose;
+
+  /// No description provided for @selectPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select period'**
+  String get selectPeriod;
+
+  /// No description provided for @changePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Change period'**
+  String get changePeriod;
+
+  /// No description provided for @lastSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync'**
+  String get lastSync;
+
+  /// No description provided for @lastUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last update'**
+  String get lastUpdate;
+
+  /// No description provided for @selectedPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'For the selected period'**
+  String get selectedPeriod;
+
+  /// No description provided for @nothingToShow.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurements.\nSelect a different period or sync the glucose meter.'**
+  String get nothingToShow;
+
+  /// No description provided for @pickerSelectPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select period'**
+  String get pickerSelectPeriod;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get confirm;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No measurements saved yet.\nTap the Bluetooth icon above to sync.'**
+  String get noData;
+
+  /// No description provided for @targetMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Target maximum'**
+  String get targetMax;
+
+  /// No description provided for @targetMin.
+  ///
+  /// In en, this message translates to:
+  /// **'Target minimum'**
+  String get targetMin;
+
+  /// No description provided for @history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// No description provided for @historyLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load history'**
+  String get historyLoadError;
+
+  /// No description provided for @last.
+  ///
+  /// In en, this message translates to:
+  /// **'Last'**
+  String get last;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

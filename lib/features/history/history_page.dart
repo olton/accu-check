@@ -11,15 +11,16 @@ import '../ble/device_scan_sheet.dart';
 import '../glucose/glucose_reading.dart';
 import '../storage/glucose_repository.dart';
 
-enum HistoryPeriod {
-  lastDay(days: 1, title: '24H'),
-  last7Days(days: 7, title: '7 днів'),
-  last30Days(days: 30, title: '30 днів');
+import '../../l10n/app_localizations.dart';
 
-  const HistoryPeriod({required this.days, required this.title});
+enum HistoryPeriod {
+  lastDay(days: 1),
+  last7Days(days: 7),
+  last30Days(days: 30);
+
+  const HistoryPeriod({required this.days});
 
   final int days;
-  final String title;
 }
 
 class HistoryPage extends ConsumerStatefulWidget {
@@ -32,7 +33,7 @@ class HistoryPage extends ConsumerStatefulWidget {
 }
 
 class _HistoryPageState extends ConsumerState<HistoryPage> {
-  HistoryPeriod _selectedPeriod = HistoryPeriod.last7Days;
+  HistoryPeriod _selectedPeriod = HistoryPeriod.lastDay;
   DateTimeRange? _customRange;
   static const _intervalModeKey = 'accu_check.history.interval_mode.v1';
   static const _intervalPeriodKey = 'accu_check.history.interval_period.v1';
@@ -41,6 +42,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   static const _intervalCustomEndKey =
       'accu_check.history.interval_custom_end.v1';
   final _storage = const FlutterSecureStorage();
+
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   @override
   void initState() {
@@ -110,10 +113,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   Widget build(BuildContext context) {
     final readingsAsync = ref.watch(glucoseReadingsStreamProvider);
     final syncState = ref.watch(bleSyncControllerProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Історія: ${widget.session.displayName}'),
+        title: Text('${l10n.history}: ${widget.session.displayName}'),
         backgroundColor: Colors.transparent,
         actions: [
           IconButton(
@@ -162,12 +166,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Тренд за ${_currentPeriodLabel()}',
+                    '${l10n.trend} ${_currentPeriodLabel()}',
                     style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Глюкоза, mmol/L',
+                  Text(
+                    '${l10n.glucose}, mmol/L',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -183,18 +187,18 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 Expanded(
                   child: SegmentedButton<HistoryPeriod>(
                     showSelectedIcon: false,
-                    segments: const [
+                    segments: [
                       ButtonSegment<HistoryPeriod>(
                         value: HistoryPeriod.lastDay,
-                        label: Text('24H'),
+                        label: Text(l10n.last24hours),
                       ),
                       ButtonSegment<HistoryPeriod>(
                         value: HistoryPeriod.last7Days,
-                        label: Text('7 днів'),
+                        label: Text(l10n.last7days),
                       ),
                       ButtonSegment<HistoryPeriod>(
                         value: HistoryPeriod.last30Days,
-                        label: Text('30 днів'),
+                        label: Text(l10n.last30days),
                       ),
                     ],
                     selected: <HistoryPeriod>{_selectedPeriod},
@@ -211,8 +215,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 const SizedBox(width: 10),
                 IconButton.filledTonal(
                   tooltip: _customRange == null
-                      ? 'Обрати кастомний період'
-                      : 'Змінити кастомний період',
+                      ? l10n.selectPeriod
+                      : l10n.changePeriod,
                   onPressed: _pickCustomRange,
                   icon: Icon(
                     Icons.calendar_month,
@@ -230,8 +234,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               width: double.infinity,
               child: Text(
                 syncState.lastSyncedCount > 0
-                    ? 'Остання синхронізація: +${syncState.lastSyncedCount} вимірювань'
-                    : 'Останнє оновлення: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
+                    ? '${l10n.lastSync}: +${syncState.lastSyncedCount} ${l10n.measurements}'
+                    : '${l10n.lastUpdate}: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}',
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Color(0xFF000000), fontSize: 12),
               ),
@@ -252,8 +256,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         final filteredReadings = _filterBySelectedPeriod(readings);
         if (filteredReadings.isEmpty) {
           return _emptyCard(
-            message:
-                'За обраний період (${_currentPeriodLabel()}) вимірювань немає.\nОберіть інший період або синхронізуйте глюкометр.',
+            message: '${l10n.nothingToShow}\n(${_currentPeriodLabel()})',
           );
         }
 
@@ -283,7 +286,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
         child: Text(
-          'Помилка завантаження історії: $error',
+          '${l10n.historyLoadError}: $error',
           style: const TextStyle(color: Color(0xFF8B2F12)),
           textAlign: TextAlign.center,
         ),
@@ -326,9 +329,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       firstDate: DateTime(now.year - 2),
       lastDate: now,
       initialDateRange: initialRange,
-      helpText: 'Оберіть період',
-      cancelText: 'Скасувати',
-      confirmText: 'Застосувати',
+      helpText: l10n.pickerSelectPeriod,
+      cancelText: l10n.cancel,
+      confirmText: l10n.confirm,
     );
 
     if (picked == null) {
@@ -347,7 +350,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
 
   String _currentPeriodLabel() {
     if (_customRange == null) {
-      return 'останні ${_selectedPeriod.title}';
+      return '${l10n.last} ${switch (_selectedPeriod) {
+        HistoryPeriod.lastDay => l10n.last24hours,
+        HistoryPeriod.last7Days => l10n.last7days,
+        HistoryPeriod.last30Days => l10n.last30days,
+      }}';
     }
 
     final format = DateFormat('dd.MM.yy');
@@ -384,9 +391,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     return result;
   }
 
-  Widget _emptyCard({
-    String message = 'Ще немає збережених вимірювань.\nНатисніть іконку Bluetooth зверху для синхронізації.',
-  }) {
+  Widget _emptyCard({String? message}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -396,7 +401,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       ),
       child: Center(
         child: Text(
-          message,
+          message ?? l10n.noData,
           textAlign: TextAlign.center,
           style: const TextStyle(color: Color(0xFF5F7371), height: 1.4),
         ),
@@ -552,7 +557,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             label: HorizontalLineLabel(
               show: true,
               alignment: Alignment.topRight,
-              labelResolver: (_) => 'Ціль max',
+              labelResolver: (_) => l10n.targetMax,
               style: const TextStyle(fontSize: 10, color: Color(0xFF6BAE3D)),
             ),
           ),
@@ -564,7 +569,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             label: HorizontalLineLabel(
               show: true,
               alignment: Alignment.bottomRight,
-              labelResolver: (_) => 'Ціль min',
+              labelResolver: (_) => l10n.targetMin,
               style: const TextStyle(fontSize: 10, color: Color(0xFFE0972E)),
             ),
           ),
