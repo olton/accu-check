@@ -1,4 +1,4 @@
-# Accu Viewer
+# Accu-Check History Viewer
 
 Accu-Check History Viewer is an application for tracking Accu-Check Instant history.
 
