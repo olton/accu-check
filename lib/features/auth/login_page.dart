@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../history/history_page.dart';
+import '../storage/glucose_repository.dart';
 import 'passkey_auth_service.dart';
 
 final authControllerProvider = NotifierProvider<AuthController, AuthUiState>(
@@ -70,14 +71,6 @@ class AuthController extends Notifier<AuthUiState> {
     }
   }
 
-  void continueInDemoMode(String username) {
-    final normalized = username.trim().isEmpty ? 'Demo User' : username.trim();
-    state = state.copyWith(
-      session: PasskeySession(userId: 'demo-user', displayName: normalized),
-      errorMessage: null,
-    );
-  }
-
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }
@@ -85,6 +78,7 @@ class AuthController extends Notifier<AuthUiState> {
   Future<bool> resetLocalAccount() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
+      await ref.read(glucoseRepositoryProvider).clearAll();
       final service = ref.read(passkeyAuthServiceProvider);
       await service.resetLocalAccount();
       state = state.copyWith(isLoading: false, clearError: true);
@@ -241,20 +235,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       },
                 icon: const Icon(Icons.person_add_alt_1),
                 label: const Text('Створити Passkey (signup)'),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: state.isLoading
-                    ? null
-                    : () {
-                        ref
-                            .read(authControllerProvider.notifier)
-                            .continueInDemoMode(_usernameController.text);
-                      },
-                child: const Text('Продовжити в демо-режимі'),
               ),
             ),
             const SizedBox(height: 10),

@@ -51,6 +51,10 @@ class GlucoseRepository {
     );
   }
 
+  Future<void> clearAll() async {
+    await _db.delete(_db.glucoseReadings).go();
+  }
+
   Future<void> upsertMany(List<domain.GlucoseReading> readings) async {
     if (readings.isEmpty) {
       return;
