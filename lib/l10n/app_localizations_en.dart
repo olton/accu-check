@@ -109,4 +109,113 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get last => 'Last';
+
+  @override
+  String get syncError => 'Failed to sync device:';
+
+  @override
+  String get scanTitle => 'Select an Accu-Chek to sync';
+
+  @override
+  String scanError(Object error) {
+    return 'Scan error: $error';
+  }
+
+  @override
+  String get unknownDevice => 'Unknown device';
+
+  @override
+  String deviceSignal(Object rssi) {
+    return '$rssi dBm';
+  }
+
+  @override
+  String get scanEmpty => 'No devices found. Turn on the glucose meter and keep it nearby.';
+
+  @override
+  String get usernameRequired => 'Enter a username or e-mail.';
+
+  @override
+  String get localSignInFailed => 'Local sign-in failed. Check that biometrics or a device PIN/password is enabled.';
+
+  @override
+  String get localSignUpFailed => 'Local registration failed. Check your device biometrics or PIN/password.';
+
+  @override
+  String get localAccountResetFailed => 'Failed to reset the local account.';
+
+  @override
+  String get loginTitle => 'Sign in';
+
+  @override
+  String get loginHeading => 'Sign in with passkey';
+
+  @override
+  String get loginDescription => 'Enter a username/e-mail. Registration and sign-in are performed locally on the device.';
+
+  @override
+  String get usernameLabel => 'Username or e-mail';
+
+  @override
+  String get displayNameLabel => 'Display name (for signup)';
+
+  @override
+  String get authenticating => 'Signing in...';
+
+  @override
+  String get signInPasskey => 'Sign in with Passkey';
+
+  @override
+  String get createPasskey => 'Create Passkey (signup)';
+
+  @override
+  String get accountResetSuccess => 'Local account reset. You can run signup again.';
+
+  @override
+  String get accountResetFailed => 'Reset failed.';
+
+  @override
+  String get resetLocalAccount => 'Reset local account';
+
+  @override
+  String get offlineModeNote => 'Backend-free mode: the account and access verification are stored locally on the device.';
+
+  @override
+  String get passkeyNotCreated => 'A local passkey has not been created yet. Run signup first.';
+
+  @override
+  String get authReasonSignIn => 'Confirm sign-in to the app';
+
+  @override
+  String get authReasonSignUp => 'Confirm creation of the local passkey';
+
+  @override
+  String get signupCancelled => 'Registration was cancelled by the user.';
+
+  @override
+  String get usernameMismatch => 'Enter the same username that was used during signup.';
+
+  @override
+  String get localAuthUnavailable => 'Biometrics or local screen protection are unavailable on this device.';
+
+  @override
+  String get androidAuthConfigError => 'Local authentication is unavailable due to the Android screen configuration. Update the app to the latest version.';
+
+  @override
+  String get biometricsNotEnrolled => 'Biometrics are not set up on this device. Add a fingerprint/Face ID or use the screen lock PIN/password.';
+
+  @override
+  String get passcodeNotSet => 'A screen lock PIN/password is not set on this device.';
+
+  @override
+  String get biometricsLocked => 'Biometrics are temporarily locked. Unlock the device with the PIN/password and try again.';
+
+  @override
+  String get localAuthNotAvailable => 'Biometrics or local protection are currently unavailable on this device.';
+
+  @override
+  String get localAuthFailed => 'Local authentication could not be completed. Check the device biometrics or PIN/password.';
+
+  @override
+  String get authCancelled => 'Authentication was cancelled by the user.';
 }

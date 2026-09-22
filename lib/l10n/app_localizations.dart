@@ -298,6 +298,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last'**
   String get last;
+
+  /// No description provided for @syncError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to sync device:'**
+  String get syncError;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an Accu-Chek to sync'**
+  String get scanTitle;
+
+  /// No description provided for @scanError.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan error: {error}'**
+  String scanError(Object error);
+
+  /// No description provided for @unknownDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown device'**
+  String get unknownDevice;
+
+  /// No description provided for @deviceSignal.
+  ///
+  /// In en, this message translates to:
+  /// **'{rssi} dBm'**
+  String deviceSignal(Object rssi);
+
+  /// No description provided for @scanEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices found. Turn on the glucose meter and keep it nearby.'**
+  String get scanEmpty;
+
+  /// No description provided for @usernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a username or e-mail.'**
+  String get usernameRequired;
+
+  /// No description provided for @localSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local sign-in failed. Check that biometrics or a device PIN/password is enabled.'**
+  String get localSignInFailed;
+
+  /// No description provided for @localSignUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local registration failed. Check your device biometrics or PIN/password.'**
+  String get localSignUpFailed;
+
+  /// No description provided for @localAccountResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset the local account.'**
+  String get localAccountResetFailed;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get loginTitle;
+
+  /// No description provided for @loginHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with passkey'**
+  String get loginHeading;
+
+  /// No description provided for @loginDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a username/e-mail. Registration and sign-in are performed locally on the device.'**
+  String get loginDescription;
+
+  /// No description provided for @usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username or e-mail'**
+  String get usernameLabel;
+
+  /// No description provided for @displayNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name (for signup)'**
+  String get displayNameLabel;
+
+  /// No description provided for @authenticating.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in...'**
+  String get authenticating;
+
+  /// No description provided for @signInPasskey.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Passkey'**
+  String get signInPasskey;
+
+  /// No description provided for @createPasskey.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Passkey (signup)'**
+  String get createPasskey;
+
+  /// No description provided for @accountResetSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Local account reset. You can run signup again.'**
+  String get accountResetSuccess;
+
+  /// No description provided for @accountResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset failed.'**
+  String get accountResetFailed;
+
+  /// No description provided for @resetLocalAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local account'**
+  String get resetLocalAccount;
+
+  /// No description provided for @offlineModeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend-free mode: the account and access verification are stored locally on the device.'**
+  String get offlineModeNote;
+
+  /// No description provided for @passkeyNotCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'A local passkey has not been created yet. Run signup first.'**
+  String get passkeyNotCreated;
+
+  /// No description provided for @authReasonSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm sign-in to the app'**
+  String get authReasonSignIn;
+
+  /// No description provided for @authReasonSignUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm creation of the local passkey'**
+  String get authReasonSignUp;
+
+  /// No description provided for @signupCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration was cancelled by the user.'**
+  String get signupCancelled;
+
+  /// No description provided for @usernameMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the same username that was used during signup.'**
+  String get usernameMismatch;
+
+  /// No description provided for @localAuthUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics or local screen protection are unavailable on this device.'**
+  String get localAuthUnavailable;
+
+  /// No description provided for @androidAuthConfigError.
+  ///
+  /// In en, this message translates to:
+  /// **'Local authentication is unavailable due to the Android screen configuration. Update the app to the latest version.'**
+  String get androidAuthConfigError;
+
+  /// No description provided for @biometricsNotEnrolled.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics are not set up on this device. Add a fingerprint/Face ID or use the screen lock PIN/password.'**
+  String get biometricsNotEnrolled;
+
+  /// No description provided for @passcodeNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'A screen lock PIN/password is not set on this device.'**
+  String get passcodeNotSet;
+
+  /// No description provided for @biometricsLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics are temporarily locked. Unlock the device with the PIN/password and try again.'**
+  String get biometricsLocked;
+
+  /// No description provided for @localAuthNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics or local protection are currently unavailable on this device.'**
+  String get localAuthNotAvailable;
+
+  /// No description provided for @localAuthFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local authentication could not be completed. Check the device biometrics or PIN/password.'**
+  String get localAuthFailed;
+
+  /// No description provided for @authCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication was cancelled by the user.'**
+  String get authCancelled;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -19,34 +19,36 @@ final _onboardingDoneProvider = FutureProvider<bool>((ref) async {
   return value == 'true';
 });
 
-final _startupAuthProvider = FutureProvider<_StartupAuthState>((ref) async {
-  final service = ref.watch(passkeyAuthServiceProvider);
-  final hasLocalAccount = await service.hasLocalAccount();
-  if (!hasLocalAccount) {
-    return const _StartupAuthState(showLogin: true);
-  }
+final _startupAuthProvider =
+    FutureProvider.family<_StartupAuthState, AppLocalizations>((
+      ref,
+      l10n,
+    ) async {
+      final service = ref.watch(passkeyAuthServiceProvider);
+      final hasLocalAccount = await service.hasLocalAccount();
+      if (!hasLocalAccount) {
+        return const _StartupAuthState(showLogin: true);
+      }
 
-  try {
-    final session = await service.signInWithSavedAccount();
-    return _StartupAuthState(session: session);
-  } on PasskeyAuthCancelledException {
-    return const _StartupAuthState(showLogin: true);
-  } on PasskeySetupException catch (error) {
-    return _StartupAuthState(errorMessage: error.message);
-  } catch (_) {
-    return const _StartupAuthState();
-  }
-});
+      try {
+        final session = await service.signInWithSavedAccount(l10n);
+        return _StartupAuthState(session: session);
+      } on PasskeyAuthCancelledException {
+        return const _StartupAuthState(showLogin: true);
+      } on PasskeySetupException catch (error) {
+        return _StartupAuthState(errorMessage: error.message);
+      } catch (_) {
+        return const _StartupAuthState();
+      }
+    });
 
 class AccuCheckApp extends ConsumerWidget {
   const AccuCheckApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-
     return MaterialApp(
-      title: l10n.appTitle,
+      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
       debugShowCheckedModeBanner: false,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
@@ -102,7 +104,7 @@ class _StartupAuthPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final startupAuth = ref.watch(_startupAuthProvider);
+    final startupAuth = ref.watch(_startupAuthProvider(l10n));
 
     return startupAuth.when(
       data: (state) {

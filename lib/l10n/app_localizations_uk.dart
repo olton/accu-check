@@ -109,4 +109,113 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get last => 'Останні';
+
+  @override
+  String get syncError => 'Не вдалося синхронізувати пристрій:';
+
+  @override
+  String get scanTitle => 'Оберіть Accu-Chek для синхронізації';
+
+  @override
+  String scanError(Object error) {
+    return 'Помилка сканування: $error';
+  }
+
+  @override
+  String get unknownDevice => 'Невідомий пристрій';
+
+  @override
+  String deviceSignal(Object rssi) {
+    return '$rssi дБм';
+  }
+
+  @override
+  String get scanEmpty => 'Пристрої не знайдено. Увімкніть глюкометр і тримайте його поруч.';
+
+  @override
+  String get usernameRequired => 'Вкажіть username або e-mail.';
+
+  @override
+  String get localSignInFailed => 'Локальний вхід не завершився. Перевірте, що на пристрої увімкнено біометрію або PIN/пароль.';
+
+  @override
+  String get localSignUpFailed => 'Локальну реєстрацію не завершено. Перевірте біометрію або PIN/пароль пристрою.';
+
+  @override
+  String get localAccountResetFailed => 'Не вдалося скинути локальний акаунт.';
+
+  @override
+  String get loginTitle => 'Вхід';
+
+  @override
+  String get loginHeading => 'Увійдіть через passkey';
+
+  @override
+  String get loginDescription => 'Вкажіть username/e-mail. Реєстрація та вхід виконуються локально на пристрої.';
+
+  @override
+  String get usernameLabel => 'Username або e-mail';
+
+  @override
+  String get displayNameLabel => 'Display name (для signup)';
+
+  @override
+  String get authenticating => 'Авторизація...';
+
+  @override
+  String get signInPasskey => 'Увійти по Passkey';
+
+  @override
+  String get createPasskey => 'Створити Passkey (signup)';
+
+  @override
+  String get accountResetSuccess => 'Локальний акаунт скинуто. Можна виконати signup знову.';
+
+  @override
+  String get accountResetFailed => 'Скидання не вдалося.';
+
+  @override
+  String get resetLocalAccount => 'Скинути локальний акаунт';
+
+  @override
+  String get offlineModeNote => 'Режим без бекенда: обліковий запис і перевірка доступу зберігаються локально на девайсі.';
+
+  @override
+  String get passkeyNotCreated => 'Локальний passkey ще не створений. Спочатку виконайте signup.';
+
+  @override
+  String get authReasonSignIn => 'Підтвердіть вхід у застосунок';
+
+  @override
+  String get authReasonSignUp => 'Підтвердіть створення локального passkey';
+
+  @override
+  String get signupCancelled => 'Реєстрацію скасовано користувачем.';
+
+  @override
+  String get usernameMismatch => 'Для входу вкажіть той самий username, що використовувався при signup.';
+
+  @override
+  String get localAuthUnavailable => 'На цьому пристрої недоступна біометрія/локальний захист екрану.';
+
+  @override
+  String get androidAuthConfigError => 'Локальна авторизація недоступна через конфігурацію Android-екрана. Оновіть застосунок до останньої версії.';
+
+  @override
+  String get biometricsNotEnrolled => 'На пристрої не налаштовано біометрію. Додайте відбиток/Face ID або використайте PIN/пароль екрана блокування.';
+
+  @override
+  String get passcodeNotSet => 'На пристрої не встановлено PIN/пароль екрана блокування.';
+
+  @override
+  String get biometricsLocked => 'Біометрію тимчасово заблоковано. Розблокуйте пристрій PIN/паролем і спробуйте знову.';
+
+  @override
+  String get localAuthNotAvailable => 'Біометрія або локальний захист зараз недоступні на цьому пристрої.';
+
+  @override
+  String get localAuthFailed => 'Не вдалося завершити локальну авторизацію. Перевірте біометрію або PIN/пароль пристрою.';
+
+  @override
+  String get authCancelled => 'Авторизацію скасовано користувачем.';
 }

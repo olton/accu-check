@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../storage/glucose_repository.dart';
 import 'ble_sync_service.dart';
 
+import '../../l10n/app_localizations.dart';
+
 final bleScanProvider = StreamProvider<List<BleSyncDevice>>((ref) async* {
   final service = ref.watch(bleSyncServiceProvider);
 
@@ -46,7 +48,7 @@ class BleSyncController extends Notifier<BleSyncState> {
     return const BleSyncState();
   }
 
-  Future<void> syncDevice(BleSyncDevice device) async {
+  Future<void> syncDevice(BleSyncDevice device, AppLocalizations l10n) async {
     state = state.copyWith(isSyncing: true, errorMessage: null);
 
     try {
@@ -68,7 +70,7 @@ class BleSyncController extends Notifier<BleSyncState> {
     } catch (error) {
       state = state.copyWith(
         isSyncing: false,
-        errorMessage: 'Не вдалося синхронізувати пристрій: $error',
+        errorMessage: '${l10n.syncError} $error',
       );
     }
   }

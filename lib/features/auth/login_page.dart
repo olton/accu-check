@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../history/history_page.dart';
 import '../storage/glucose_repository.dart';
 import 'passkey_auth_service.dart';
@@ -15,11 +16,11 @@ class AuthController extends Notifier<AuthUiState> {
     return const AuthUiState();
   }
 
-  Future<void> signInWithPasskey(String username) async {
+  Future<void> signInWithPasskey(String username, AppLocalizations l10n) async {
     if (username.trim().isEmpty) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Вкажіть username або e-mail.',
+        errorMessage: l10n.usernameRequired,
       );
       return;
     }
@@ -28,14 +29,14 @@ class AuthController extends Notifier<AuthUiState> {
 
     try {
       final service = ref.read(passkeyAuthServiceProvider);
-      final session = await service.signIn(username: username);
+      final session = await service.signIn(username: username, l10n: l10n);
       state = state.copyWith(isLoading: false, session: session);
     } on PasskeySetupException catch (error) {
       state = state.copyWith(isLoading: false, errorMessage: error.message);
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Локальний вхід не завершився. Перевірте, що на пристрої увімкнено біометрію або PIN/пароль.',
+        errorMessage: l10n.localSignInFailed,
       );
     }
   }
@@ -43,11 +44,12 @@ class AuthController extends Notifier<AuthUiState> {
   Future<void> signUpWithPasskey({
     required String username,
     required String displayName,
+    required AppLocalizations l10n,
   }) async {
     if (username.trim().isEmpty) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Вкажіть username або e-mail.',
+        errorMessage: l10n.usernameRequired,
       );
       return;
     }
@@ -59,6 +61,7 @@ class AuthController extends Notifier<AuthUiState> {
       final session = await service.signUp(
         username: username,
         displayName: displayName,
+        l10n: l10n,
       );
       state = state.copyWith(isLoading: false, session: session);
     } on PasskeySetupException catch (error) {
@@ -66,7 +69,7 @@ class AuthController extends Notifier<AuthUiState> {
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Локальну реєстрацію не завершено. Перевірте біометрію або PIN/пароль пристрою.',
+        errorMessage: l10n.localSignUpFailed,
       );
     }
   }
@@ -75,7 +78,7 @@ class AuthController extends Notifier<AuthUiState> {
     state = state.copyWith(errorMessage: null);
   }
 
-  Future<bool> resetLocalAccount() async {
+  Future<bool> resetLocalAccount(AppLocalizations l10n) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       await ref.read(glucoseRepositoryProvider).clearAll();
@@ -86,7 +89,7 @@ class AuthController extends Notifier<AuthUiState> {
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Не вдалося скинути локальний акаунт.',
+        errorMessage: l10n.localAccountResetFailed,
       );
       return false;
     }
@@ -141,6 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     ref.listen<AuthUiState>(authControllerProvider, (previous, next) {
       final session = next.session;
       if (session == null || previous?.session == session) {
@@ -155,14 +159,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final state = ref.watch(authControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Вхід')),
+      appBar: AppBar(title: Text(l10n.loginTitle)),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Увійдіть через passkey',
+            Text(
+              l10n.loginHeading,
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -170,24 +174,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Вкажіть username/e-mail. Реєстрація та вхід виконуються локально на пристрої.',
+            Text(
+              l10n.loginDescription,
               style: TextStyle(fontSize: 14, color: Color(0xFF5A7572)),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: _usernameController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Username або e-mail',
+              decoration: InputDecoration(
+                labelText: l10n.usernameLabel,
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _displayNameController,
-              decoration: const InputDecoration(
-                labelText: 'Display name (для signup)',
+              decoration: InputDecoration(
+                labelText: l10n.displayNameLabel,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -201,11 +205,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         FocusScope.of(context).unfocus();
                         ref
                             .read(authControllerProvider.notifier)
-                            .signInWithPasskey(_usernameController.text.trim());
+                            .signInWithPasskey(
+                              _usernameController.text.trim(),
+                              l10n,
+                            );
                       },
                 icon: const Icon(Icons.fingerprint),
                 label: Text(
-                  state.isLoading ? 'Авторизація...' : 'Увійти по Passkey',
+                  state.isLoading ? l10n.authenticating : l10n.signInPasskey,
                 ),
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF0A6B63),
@@ -231,10 +238,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             .signUpWithPasskey(
                               username: _usernameController.text.trim(),
                               displayName: displayName,
+                              l10n: l10n,
                             );
                       },
                 icon: const Icon(Icons.person_add_alt_1),
-                label: const Text('Створити Passkey (signup)'),
+                label: Text(l10n.createPasskey),
               ),
             ),
             const SizedBox(height: 10),
@@ -247,7 +255,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         FocusScope.of(context).unfocus();
                         final ok = await ref
                             .read(authControllerProvider.notifier)
-                            .resetLocalAccount();
+                            .resetLocalAccount(l10n);
                         if (!context.mounted) {
                           return;
                         }
@@ -256,13 +264,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           SnackBar(
                             content: Text(
                               ok
-                                  ? 'Локальний акаунт скинуто. Можна виконати signup знову.'
-                                  : 'Скидання не вдалося.',
+                                  ? l10n.accountResetSuccess
+                                  : l10n.accountResetFailed,
                             ),
                           ),
                         );
                       },
-                child: const Text('Скинути локальний акаунт'),
+                child: Text(l10n.resetLocalAccount),
               ),
             ),
             const SizedBox(height: 10),
@@ -281,8 +289,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
             const Spacer(),
-            const Text(
-              'Режим без бекенда: обліковий запис і перевірка доступу зберігаються локально на девайсі.',
+            Text(
+              l10n.offlineModeNote,
               style: TextStyle(fontSize: 12, color: Color(0xFF647D7B)),
             ),
           ],

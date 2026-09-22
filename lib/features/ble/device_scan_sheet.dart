@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'ble_sync_controller.dart';
 
 class DeviceScanSheet extends ConsumerWidget {
@@ -8,6 +9,7 @@ class DeviceScanSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final devicesAsync = ref.watch(bleScanProvider);
     final syncState = ref.watch(bleSyncControllerProvider);
 
@@ -26,8 +28,8 @@ class DeviceScanSheet extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Оберіть Accu-Chek для синхронізації',
+            Text(
+              l10n.scanTitle,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
@@ -41,7 +43,7 @@ class DeviceScanSheet extends ConsumerWidget {
               child: devicesAsync.when(
                 data: (devices) {
                   if (devices.isEmpty) {
-                    return const _EmptyState();
+                    return _EmptyState(text: l10n.scanEmpty);
                   }
 
                   return ListView.separated(
@@ -53,9 +55,10 @@ class DeviceScanSheet extends ConsumerWidget {
                         device: device,
                         busy: syncState.isSyncing,
                         onTap: () async {
+                          final l10n = AppLocalizations.of(context)!;
                           await ref
                               .read(bleSyncControllerProvider.notifier)
-                              .syncDevice(device);
+                              .syncDevice(device, l10n);
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }
@@ -67,7 +70,7 @@ class DeviceScanSheet extends ConsumerWidget {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => Center(
                   child: Text(
-                    'Помилка сканування: $error',
+                    l10n.scanError(error.toString()),
                     style: const TextStyle(color: Color(0xFF8B2F12)),
                   ),
                 ),
@@ -93,7 +96,8 @@ class _DeviceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = device.name.isEmpty ? 'Unknown device' : device.name;
+    final l10n = AppLocalizations.of(context)!;
+    final title = device.name.isEmpty ? l10n.unknownDevice : device.name;
 
     return ListTile(
       enabled: !busy,
@@ -103,7 +107,7 @@ class _DeviceTile extends StatelessWidget {
       trailing: device.isSaved
           ? const Icon(Icons.bookmark, color: Color(0xFF0A6B63))
           : Text(
-              device.rssi == null ? '' : '${device.rssi} dBm',
+              device.rssi == null ? '' : l10n.deviceSignal(device.rssi!),
               style: const TextStyle(color: Color(0xFF516664)),
             ),
       onTap: onTap,
@@ -112,13 +116,15 @@ class _DeviceTile extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Text(
-        'Пристрої не знайдено. Увімкніть глюкометр і тримайте його поруч.',
+        text,
         textAlign: TextAlign.center,
         style: TextStyle(color: Color(0xFF5F7371)),
       ),

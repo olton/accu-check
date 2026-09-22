@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
+import '../../l10n/app_localizations.dart';
+
 final passkeyAuthServiceProvider = Provider<PasskeyAuthService>((ref) {
   return PasskeyAuthService(
     localAuth: LocalAuthentication(),
@@ -29,22 +31,21 @@ class PasskeyAuthService {
     await secureStorage.delete(key: _accountKey);
   }
 
-  Future<PasskeySession> signInWithSavedAccount() async {
-    await _ensureLocalAuthSupported();
+  Future<PasskeySession> signInWithSavedAccount(AppLocalizations l10n) async {
+    await _ensureLocalAuthSupported(l10n);
 
     final account = await _readAccount();
     if (account == null) {
-      throw const PasskeySetupException(
-        'Локальний passkey ще не створений. Спочатку виконайте signup.',
-      );
+      throw PasskeySetupException(l10n.passkeyNotCreated);
     }
 
     final approved = await _authenticateOrThrow(
-      localizedReason: 'Підтвердіть вхід у застосунок',
+      localizedReason: l10n.authReasonSignIn,
+      l10n: l10n,
     );
 
     if (!approved) {
-      throw const PasskeyAuthCancelledException();
+      throw PasskeyAuthCancelledException(l10n.authCancelled);
     }
 
     return PasskeySession(
@@ -56,15 +57,17 @@ class PasskeyAuthService {
   Future<PasskeySession> signUp({
     required String username,
     required String displayName,
+    required AppLocalizations l10n,
   }) async {
-    await _ensureLocalAuthSupported();
+    await _ensureLocalAuthSupported(l10n);
 
     final approved = await _authenticateOrThrow(
-      localizedReason: 'Підтвердіть створення локального passkey',
+      localizedReason: l10n.authReasonSignUp,
+      l10n: l10n,
     );
 
     if (!approved) {
-      throw const PasskeySetupException('Реєстрацію скасовано користувачем.');
+      throw PasskeySetupException(l10n.signupCancelled);
     }
 
     final normalizedUser = username.trim().toLowerCase();
@@ -89,29 +92,29 @@ class PasskeyAuthService {
     );
   }
 
-  Future<PasskeySession> signIn({required String username}) async {
-    await _ensureLocalAuthSupported();
+  Future<PasskeySession> signIn({
+    required String username,
+    required AppLocalizations l10n,
+  }) async {
+    await _ensureLocalAuthSupported(l10n);
 
     final account = await _readAccount();
     if (account == null) {
-      throw const PasskeySetupException(
-        'Локальний passkey ще не створений. Спочатку виконайте signup.',
-      );
+      throw PasskeySetupException(l10n.passkeyNotCreated);
     }
 
     final incoming = username.trim().toLowerCase();
     if (incoming != account.username) {
-      throw const PasskeySetupException(
-        'Для входу вкажіть той самий username, що використовувався при signup.',
-      );
+      throw PasskeySetupException(l10n.usernameMismatch);
     }
 
     final approved = await _authenticateOrThrow(
-      localizedReason: 'Підтвердіть вхід у застосунок',
+      localizedReason: l10n.authReasonSignIn,
+      l10n: l10n,
     );
 
     if (!approved) {
-      throw const PasskeyAuthCancelledException();
+      throw PasskeyAuthCancelledException(l10n.authCancelled);
     }
 
     return PasskeySession(
@@ -120,21 +123,22 @@ class PasskeyAuthService {
     );
   }
 
-  Future<void> _ensureLocalAuthSupported() async {
+  Future<void> _ensureLocalAuthSupported(AppLocalizations l10n) async {
     try {
       final supported = await localAuth.isDeviceSupported();
 
       if (!supported) {
-        throw const PasskeySetupException(
-          'На цьому пристрої недоступна біометрія/локальний захист екрану.',
-        );
+        throw PasskeySetupException(l10n.localAuthUnavailable);
       }
     } on PlatformException catch (error) {
-      throw PasskeySetupException(_mapLocalAuthError(error));
+      throw PasskeySetupException(_mapLocalAuthError(error, l10n));
     }
   }
 
-  Future<bool> _authenticateOrThrow({required String localizedReason}) async {
+  Future<bool> _authenticateOrThrow({
+    required String localizedReason,
+    required AppLocalizations l10n,
+  }) async {
     try {
       return await localAuth.authenticate(
         localizedReason: localizedReason,
@@ -146,36 +150,36 @@ class PasskeyAuthService {
     } on PlatformException catch (error) {
       final code = error.code.toLowerCase();
       if (code.contains('canceled') || code.contains('cancelled')) {
-        throw const PasskeyAuthCancelledException();
+        throw PasskeyAuthCancelledException(l10n.authCancelled);
       }
-      throw PasskeySetupException(_mapLocalAuthError(error));
+      throw PasskeySetupException(_mapLocalAuthError(error, l10n));
     }
   }
 
-  String _mapLocalAuthError(PlatformException error) {
+  String _mapLocalAuthError(PlatformException error, AppLocalizations l10n) {
     final code = error.code.toLowerCase();
 
     if (code.contains('no_fragment_activity')) {
-      return 'Локальна авторизація недоступна через конфігурацію Android-екрана. Оновіть застосунок до останньої версії.';
+      return l10n.androidAuthConfigError;
     }
 
     if (code.contains('notenrolled')) {
-      return 'На пристрої не налаштовано біометрію. Додайте відбиток/Face ID або використайте PIN/пароль екрана блокування.';
+      return l10n.biometricsNotEnrolled;
     }
 
     if (code.contains('passcodenotset')) {
-      return 'На пристрої не встановлено PIN/пароль екрана блокування.';
+      return l10n.passcodeNotSet;
     }
 
     if (code.contains('lockedout') || code.contains('permanentlylockedout')) {
-      return 'Біометрію тимчасово заблоковано. Розблокуйте пристрій PIN/паролем і спробуйте знову.';
+      return l10n.biometricsLocked;
     }
 
     if (code.contains('notavailable')) {
-      return 'Біометрія або локальний захист зараз недоступні на цьому пристрої.';
+      return l10n.localAuthNotAvailable;
     }
 
-    return 'Не вдалося завершити локальну авторизацію. Перевірте біометрію або PIN/пароль пристрою.';
+    return l10n.localAuthFailed;
   }
 
   Future<_StoredAccount?> _readAccount() async {
@@ -236,6 +240,5 @@ class PasskeySetupException implements Exception {
 }
 
 class PasskeyAuthCancelledException extends PasskeySetupException {
-  const PasskeyAuthCancelledException()
-    : super('Авторизацію скасовано користувачем.');
+  const PasskeyAuthCancelledException(super.message);
 }
